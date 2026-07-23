@@ -29,9 +29,7 @@ services:
       - git_data:/home/git
 
   sonarqube:
-    # lts-community (9.9): newer Community Builds enforce a password policy
-    # (uppercase required) that rejects the SIT email as a password
-    image: sonarqube:lts-community
+    image: sonarqube:community
     ulimits:
       nofile:
         soft: 65536
@@ -59,7 +57,7 @@ services:
         if curl -sf -o /dev/null -u admin:admin -X POST "http://sonarqube:9000/api/users/change_password" \
              --data-urlencode "login=admin" \
              --data-urlencode "previousPassword=admin" \
-             --data-urlencode "password=2403201@sit.singaporetech.edu.sg"; then
+             --data-urlencode "password=2403201@SIT.singaporetech.edu.sg"; then
           echo "SonarQube admin password set to SIT email."
         else
           echo "Admin password already changed - nothing to do."
