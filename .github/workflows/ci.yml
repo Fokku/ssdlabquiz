@@ -22,7 +22,8 @@ jobs:
           for i in $(seq 1 60); do
             code=$(curl -s -o /dev/null -w "%{http_code}" \
               --data "username=probe&password=Readiness-Probe-1!" \
-              http://localhost:5000/login)
+              http://localhost:5000/login || true)
+            echo "attempt $i: HTTP $code"
             [ "$code" = "200" ] && echo "ready" && exit 0
             sleep 5
           done
