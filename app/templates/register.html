@@ -1,0 +1,7 @@
+<h1>Create Account</h1>
+<form method="post" action="/register" onsubmit="return checkPassword(this.password.value)">
+    <input name="username" placeholder="Username" required>
+    <input name="password" type="password" placeholder="Password" required>
+    <button>Create account</button>
+</form>
+<script src="/static/validate.js"></script>

@@ -33,6 +33,9 @@ services:
       MYSQL_DATABASE: quizdb
       MYSQL_USER: admin
       MYSQL_PASSWORD: "2403201@sit.singaporetech.edu.sg"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./db/100k-most-used-passwords-NCSC.txt:/var/lib/mysql-files/passwords.txt:ro
 
 volumes:
   git_data:
