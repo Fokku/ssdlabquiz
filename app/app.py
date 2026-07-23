@@ -1,8 +1,14 @@
 import os
+import secrets
 import pymysql
 from flask import Flask, request, render_template, redirect
+from flask_wtf import CSRFProtect
 
 app = Flask(__name__)
+# CSRF protection on all POST routes (SonarQube python:S4502).
+# The key signs session/CSRF tokens; generated fresh per boot, never hardcoded.
+app.secret_key = secrets.token_hex(32)
+csrf = CSRFProtect(app)
 
 
 def db():
@@ -21,7 +27,7 @@ def password_ok(pw):
         return cur.fetchone() is None
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
     return render_template("home.html")
 

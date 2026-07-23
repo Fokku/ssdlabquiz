@@ -1,2 +1,5 @@
 node_modules/
 reports/
+.playwright-mcp
+.scannerwork/
+sonarqube-passed-dashboard.png

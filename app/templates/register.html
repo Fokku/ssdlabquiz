@@ -1,7 +1,10 @@
 <h1>Create Account</h1>
 <form method="post" action="/register" onsubmit="return checkPassword(this.password.value)">
-    <input name="username" placeholder="Username" required>
-    <input name="password" type="password" placeholder="Password" required>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Username</label>
+    <input id="username" name="username" placeholder="Username" required>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" placeholder="Password" required>
     <button>Create account</button>
 </form>
 <script src="/static/validate.js"></script>
