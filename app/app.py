@@ -39,7 +39,7 @@ def register():
     if request.method == "GET":
         return render_template("register.html")
     username, pw = request.form["username"], request.form["password"]
-    if not password_ok(pw):
+    if not password_ok(pw) or len(username) > 64:
         return redirect("/")
     with db() as conn, conn.cursor() as cur:
         cur.execute("INSERT INTO `2403201` (username) VALUES (%s)", (username,))

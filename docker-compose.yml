@@ -3,11 +3,13 @@ services:
     image: nginx:alpine
     ports:
       - "443:443"
+      - "127.0.0.1:9000:9000"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - app
+      - sonarqube
 
   app:
     build: ./app
@@ -26,6 +28,43 @@ services:
     volumes:
       - git_data:/home/git
 
+  sonarqube:
+    # lts-community (9.9): newer Community Builds enforce a password policy
+    # (uppercase required) that rejects the SIT email as a password
+    image: sonarqube:lts-community
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+  # One-shot: waits for SonarQube, then changes the default admin password
+  # (admin/admin) to the SIT email, matching the credentials used in Q1.
+  sonarqube-init:
+    image: curlimages/curl:latest
+    depends_on:
+      - sonarqube
+    restart: "no"
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo "Waiting for SonarQube to come up..."
+        until curl -sf http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
+          sleep 5
+        done
+        if curl -sf -o /dev/null -u admin:admin -X POST "http://sonarqube:9000/api/users/change_password" \
+             --data-urlencode "login=admin" \
+             --data-urlencode "previousPassword=admin" \
+             --data-urlencode "password=2403201@sit.singaporetech.edu.sg"; then
+          echo "SonarQube admin password set to SIT email."
+        else
+          echo "Admin password already changed - nothing to do."
+        fi
+
   db:
     image: mysql:8
     environment:
@@ -39,3 +78,6 @@ services:
 
 volumes:
   git_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
