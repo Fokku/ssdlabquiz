@@ -1,7 +1,7 @@
 FROM node:alpine
 
 RUN apk add --no-cache tini git \
-    && yarn global add git-http-server \
+    && npm install -g git-http-server \
     && adduser -D -g git git
 
 USER git
