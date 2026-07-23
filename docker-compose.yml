@@ -9,6 +9,13 @@ services:
     depends_on:
       - db
 
+  gitserver:
+    build: ./gitserver
+    ports:
+      - "3000:3000"
+    volumes:
+      - git_data:/home/git
+
   db:
     image: mysql:8
     environment:
@@ -16,3 +23,6 @@ services:
       MYSQL_DATABASE: quizdb
       MYSQL_USER: admin
       MYSQL_PASSWORD: "2403201@sit.singaporetech.edu.sg"
+
+volumes:
+  git_data:
