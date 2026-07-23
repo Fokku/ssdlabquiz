@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   web:
     image: nginx:alpine
@@ -27,9 +29,21 @@ services:
       - "3000:3000"
     volumes:
       - git_data:/home/git
+      # Project history; the entrypoint seeds the served repo from it on start
+      - ./.git:/seed:ro
+
+  # One-shot: Elasticsearch inside SonarQube needs vm.max_map_count >= 262144;
+  # stock Linux defaults to 65530. Idempotent where the host is already set.
+  sonarqube-sysctl:
+    image: busybox
+    command: ["sysctl", "-w", "vm.max_map_count=262144"]
+    privileged: true
+    restart: "no"
 
   sonarqube:
     image: sonarqube:community
+    depends_on:
+      - sonarqube-sysctl
     ulimits:
       nofile:
         soft: 65536
