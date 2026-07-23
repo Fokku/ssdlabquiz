@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  web-tests:
+    name: Integration and UI tests (over HTTP)
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start the web app and database over HTTP
+        run: docker compose up -d --build db app
+
+      - name: Wait until the app and seeded database are ready
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" \
+              --data "username=probe&password=Readiness-Probe-1!" \
+              http://localhost:5000/login)
+            [ "$code" = "200" ] && echo "ready" && exit 0
+            sleep 5
+          done
+          echo "App/database did not become ready"; docker compose logs; exit 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install requests pymysql cryptography selenium
+
+      - name: Integration tests (app + database over HTTP)
+        run: python tests/integration_test.py
+
+      - name: UI tests over HTTP (Selenium)
+        run: python tests/ui_test.py
+
+      - name: App logs
+        if: always()
+        run: docker compose logs app
+
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: ssdlabquiz
+          path: .
+          format: HTML
+          out: reports
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload Dependency Check report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-report
+          path: reports

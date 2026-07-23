@@ -1,0 +1,9 @@
+# CI overlay: publish the app (HTTP) and database so the GitHub Actions
+# runner can drive integration and Selenium UI tests over http://localhost.
+services:
+  app:
+    ports:
+      - "5000:5000"
+  db:
+    ports:
+      - "3306:3306"
