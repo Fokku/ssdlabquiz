@@ -19,9 +19,14 @@ jobs:
 
       - name: Wait until the app and seeded database are ready
         run: |
+          # The login form is CSRF-protected: fetch the page first (session
+          # cookie + token), then post the probe credentials with the token.
           for i in $(seq 1 60); do
-            code=$(curl -s -o /dev/null -w "%{http_code}" \
-              --data "username=probe&password=Readiness-Probe-1!" \
+            csrf=$(curl -s -c /tmp/probe-jar http://localhost:5000/ \
+              | grep -o 'name="csrf_token" value="[^"]*"' | cut -d'"' -f4 || true)
+            code=$(curl -s -b /tmp/probe-jar -o /dev/null -w "%{http_code}" \
+              --data-urlencode "csrf_token=$csrf" \
+              --data "username=probe" --data "password=Readiness-Probe-1!" \
               http://localhost:5000/login || true)
             echo "attempt $i: HTTP $code"
             [ "$code" = "200" ] && echo "ready" && exit 0
