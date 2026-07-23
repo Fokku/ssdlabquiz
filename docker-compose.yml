@@ -7,6 +7,16 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
+      - app
+
+  app:
+    build: ./app
+    environment:
+      DB_HOST: db
+      DB_USER: admin
+      DB_PASSWORD: "2403201@sit.singaporetech.edu.sg"
+      DB_NAME: quizdb
+    depends_on:
       - db
 
   gitserver:
