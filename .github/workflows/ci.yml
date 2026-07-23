@@ -67,3 +67,40 @@ jobs:
         with:
           name: dependency-check-report
           path: reports
+
+  eslint-security:
+    name: ESLint security scan (SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install ESLint and the security plugin
+        run: npm install
+
+      - name: Run ESLint security scan (SARIF output)
+        run: |
+          mkdir -p reports
+          npx eslint . --format=@microsoft/eslint-formatter-sarif \
+            --output-file=reports/eslint-results.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF to GitHub code scanning (Security tab)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        continue-on-error: true
+        with:
+          sarif_file: reports/eslint-results.sarif
+
+      - name: Upload ESLint report as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eslint-sarif-report
+          path: reports/eslint-results.sarif
